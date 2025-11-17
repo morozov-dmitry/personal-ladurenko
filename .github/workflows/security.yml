@@ -1,0 +1,68 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [ main, develop ]
+  schedule:
+    - cron: '0 2 * * 1' # Weekly on Monday at 2 AM
+  workflow_dispatch:
+
+jobs:
+  terraform-security:
+    name: Terraform Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.5.7
+
+    - name: Terraform Security Scan
+      uses: aquasecurity/tfsec-action@v1.0.3
+      with:
+        working_directory: infrastructure
+        soft_fail: true
+
+  dependency-check:
+    name: Dependency Security Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+
+    - name: Install pnpm
+      run: npm install -g pnpm
+
+    - name: Install frontend dependencies
+      run: pnpm install --frozen-lockfile
+      working-directory: ./front
+
+    - name: Run frontend security audit
+      run: pnpm audit --audit-level moderate
+      working-directory: ./front
+
+    - name: Install admin-frontend dependencies
+      run: npm ci
+      working-directory: ./admin-front
+
+    - name: Run admin-frontend security audit
+      run: npm audit --audit-level moderate
+      working-directory: ./admin-front
+
+    - name: Install Lambda dependencies
+      run: npm ci
+      working-directory: ./admin-api
+
+    - name: Run Lambda security audit
+      run: npm audit --audit-level moderate
+      working-directory: ./admin-api

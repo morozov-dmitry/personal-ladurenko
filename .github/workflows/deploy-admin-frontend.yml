@@ -1,0 +1,220 @@
+name: Deploy Admin Frontend
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'admin-front/**'
+      - '.github/workflows/deploy-admin-frontend.yml'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - prod
+
+env:
+  AWS_REGION: eu-central-1
+  NODE_VERSION: '22'
+  TERRAFORM_VERSION: '1.5.7'
+
+jobs:
+  build-and-test:
+    name: Build and Test Admin Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Install npm
+      run: npm install -g npm@latest
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TERRAFORM_VERSION || '1.5.7' }}
+
+    - name: Configure AWS credentials for Terraform
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Get Terraform outputs
+      id: terraform-outputs
+      run: |
+        # Determine environment based on branch or manual input
+        if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+          ENV="prod"
+        elif [ "${{ github.ref }}" = "refs/heads/develop" ]; then
+          ENV="staging"
+        else
+          ENV="${{ github.event.inputs.environment || 'staging' }}"
+        fi
+
+        echo "environment=$ENV" >> $GITHUB_OUTPUT
+
+        # Get Terraform outputs
+        cd infrastructure/environments/$ENV
+        terraform init -backend-config="bucket=lostal-terraform-state" -backend-config="key=$ENV/terraform.tfstate" -backend-config="region=eu-central-1"
+
+        # Extract API Gateway URL
+        API_BASE_URL=$(terraform output -raw api_gateway_url 2>/dev/null || echo "")
+        if [ -z "$API_BASE_URL" ]; then
+          echo "ERROR: API Gateway URL is empty! Terraform output failed."
+          exit 1
+        fi
+        echo "api_base_url=$API_BASE_URL" >> $GITHUB_OUTPUT
+
+        echo "Environment: $ENV"
+        echo "API Base URL: $API_BASE_URL"
+
+    - name: Verify directory structure
+      run: |
+        echo "Current directory contents:"
+        ls -la
+        echo "Admin-front directory contents:"
+        ls -la admin-front/
+
+    - name: Set environment variables
+      run: |
+        cd admin-front
+        echo "VITE_API_BASE_URL=${{ steps.terraform-outputs.outputs.api_base_url }}" >> .env
+        echo "VITE_ENVIRONMENT=${{ steps.terraform-outputs.outputs.environment }}" >> .env
+        echo "VITE_VERSION=1.0.0" >> .env
+
+    - name: Install dependencies
+      run: |
+        cd admin-front
+        npm install
+
+    - name: Build
+      run: |
+        cd admin-front
+        npm run build
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: admin-frontend-build
+        path: admin-front/dist/
+        retention-days: 1
+
+  deploy-staging-admin-frontend:
+    name: Deploy Admin Frontend to Staging
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: (github.ref == 'refs/heads/develop' && github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
+    environment: staging
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: admin-frontend-build
+        path: ./build/
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Deploy to S3
+      run: |
+        aws s3 sync ./build/ s3://lostal-staging-admin/ --delete
+        echo "Admin frontend deployed to staging S3 bucket"
+
+    - name: Invalidate CloudFront
+      run: |
+        DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?contains(Origins.Items[0].DomainName, 'lostal-staging-admin')].Id" --output text)
+        aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"
+        echo "CloudFront cache invalidated for staging admin"
+
+    - name: Output Staging Admin Frontend URL
+      run: |
+        DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?contains(Origins.Items[0].DomainName, 'lostal-staging-admin')].Id" --output text)
+        DOMAIN=$(aws cloudfront get-distribution --id $DISTRIBUTION_ID --query "Distribution.DomainName" --output text)
+        
+        # Get API Gateway URL from Terraform
+        cd infrastructure/environments/staging
+        terraform init -backend-config="bucket=lostal-terraform-state" -backend-config="key=staging/terraform.tfstate" -backend-config="region=eu-central-1"
+        API_URL=$(terraform output -raw api_gateway_url 2>/dev/null || echo "")
+        if [ -z "$API_URL" ]; then
+          echo "WARNING: API Gateway URL is empty! Terraform output failed."
+        fi
+        
+        echo "## Staging Admin Frontend Deployed 🚀" >> $GITHUB_STEP_SUMMARY
+        echo "**URL:** https://$DOMAIN" >> $GITHUB_STEP_SUMMARY
+        if [ -n "$API_URL" ]; then
+          echo "**API URL:** $API_URL" >> $GITHUB_STEP_SUMMARY
+        fi
+
+  deploy-prod-admin-frontend:
+    name: Deploy Admin Frontend to Production
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod')
+    environment: production
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: admin-frontend-build
+        path: ./build/
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Deploy to S3
+      run: |
+        aws s3 sync ./build/ s3://lostal-prod-admin/ --delete
+        echo "Admin frontend deployed to production S3 bucket"
+
+    - name: Invalidate CloudFront
+      run: |
+        DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?contains(Origins.Items[0].DomainName, 'lostal-prod-admin')].Id" --output text)
+        aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"
+        echo "CloudFront cache invalidated for production admin"
+
+    - name: Output Prod Admin Frontend URL
+      run: |
+        DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?contains(Origins.Items[0].DomainName, 'lostal-prod-admin')].Id" --output text)
+        DOMAIN=$(aws cloudfront get-distribution --id $DISTRIBUTION_ID --query "Distribution.DomainName" --output text)
+        
+        # Get API Gateway URL from Terraform
+        cd infrastructure/environments/prod
+        terraform init -backend-config="bucket=lostal-terraform-state" -backend-config="key=prod/terraform.tfstate" -backend-config="region=eu-central-1"
+        API_URL=$(terraform output -raw api_gateway_url 2>/dev/null || echo "")
+        if [ -z "$API_URL" ]; then
+          echo "WARNING: API Gateway URL is empty! Terraform output failed."
+        fi
+        
+        echo "## Production Admin Frontend Deployed 🚀" >> $GITHUB_STEP_SUMMARY
+        echo "**URL:** https://$DOMAIN" >> $GITHUB_STEP_SUMMARY
+        if [ -n "$API_URL" ]; then
+          echo "**API URL:** $API_URL" >> $GITHUB_STEP_SUMMARY
+        fi
