@@ -1,0 +1,66 @@
+{
+  "name": "@uecsio/api-service",
+  "version": "1.0.1",
+  "description": "A generic, flexible API service for making authenticated HTTP requests with automatic error handling and response parsing",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "build:dev": "rollup -c --environment NODE_ENV:development",
+    "build:prod": "rollup -c --environment NODE_ENV:production",
+    "dev": "rollup -c -w",
+    "prepublishOnly": "npm run build:prod",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "api",
+    "http",
+    "fetch",
+    "authentication",
+    "jwt",
+    "rest",
+    "client",
+    "service",
+    "javascript",
+    "typescript"
+  ],
+  "author": "UECSIO Development Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/uecsio/api-service.git"
+  },
+  "bugs": {
+    "url": "https://github.com/uecsio/api-service/issues"
+  },
+  "homepage": "https://github.com/uecsio/api-service#readme",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-terser": "^0.4.4",
+    "rollup": "^3.0.0",
+    "typescript": "^5.0.0",
+    "tslib": "^2.6.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

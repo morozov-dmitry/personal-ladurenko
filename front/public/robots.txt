@@ -1,0 +1,19 @@
+# robots.txt for lostal.com.ua
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://lostal.com.ua/sitemap.xml
+
+# Disallow admin and API paths (if they were on the same domain)
+Disallow: /admin/
+Disallow: /api/
+
+# Allow crawling of all public pages
+Allow: /uk/
+Allow: /ru/
+Allow: /_nuxt/
+
+# Crawl-delay (optional, adjust if needed)
+# Crawl-delay: 1
+
