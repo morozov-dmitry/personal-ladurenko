@@ -1,9 +1,9 @@
 # Terraform state bucket
 resource "aws_s3_bucket" "terraform_state" {
-  bucket = "lostal-terraform-state"
+  bucket = "ladurenko-terraform-state"
 
   tags = {
-    Name        = "lostal-terraform-state"
+    Name        = "ladurenko-terraform-state"
     Purpose     = "terraform-state"
     Environment = "global"
   }
@@ -37,7 +37,7 @@ resource "aws_s3_bucket_public_access_block" "terraform_state" {
 
 # DynamoDB table for state locking
 resource "aws_dynamodb_table" "terraform_locks" {
-  name         = "lostal-terraform-locks"
+  name         = "ladurenko-terraform-locks"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "LockID"
 
@@ -47,7 +47,7 @@ resource "aws_dynamodb_table" "terraform_locks" {
   }
 
   tags = {
-    Name        = "lostal-terraform-locks"
+    Name        = "ladurenko-terraform-locks"
     Purpose     = "terraform-state-locking"
     Environment = "global"
   }

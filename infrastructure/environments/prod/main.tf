@@ -1,7 +1,7 @@
 # Production environment
 terraform {
   backend "s3" {
-    bucket = "lostal-terraform-state"
+    bucket = "ladurenko-terraform-state"
     key    = "prod/terraform.tfstate"
     region = "eu-central-1"
   }
@@ -11,29 +11,29 @@ module "infrastructure" {
   source = "../../"
 
   environment            = "prod"
-  project_name           = "lostal"
+  project_name           = "ladurenko"
   aws_region             = "eu-central-1"
   cloudfront_price_class = "PriceClass_All"
-  base_url              = "https://lostal.com.ua"
+  base_url              = "https://ladurenko.com.ua"
   google_analytics_id   = "G-4VPGNB8DP8"
   google_ads_id         = "AW-11108238320"
   google_ads_conversion_id = "AW-11108238320/KeM1CJqYso8YEPCH6bAp"
   
   # Custom domains (optional - set these if you have SSL certificates)
-  # domain_name           = "lostal.com.ua"
-  # admin_domain_name     = "admin.lostal.com.ua"
-  # api_domain_name       = "api.lostal.com.ua"
+  # domain_name           = "ladurenko.com.ua"
+  # admin_domain_name     = "admin.ladurenko.com.ua"
+  # api_domain_name       = "api.ladurenko.com.ua"
   
   # SSL certificate ARNs
   # CloudFront requires us-east-1 certificates
-  # certificate_arn       = "arn:aws:acm:us-east-1:294396590372:certificate/0e720d01-ac51-459a-8442-d339eadcf8c6"  # lostal.com.ua (ISSUED)
-  # admin_certificate_arn = "arn:aws:acm:us-east-1:294396590372:certificate/96cd1553-1739-454a-9496-28b3f71d2fcf"  # admin.lostal.com.ua (ISSUED)
+  # certificate_arn       = "arn:aws:acm:us-east-1:294396590372:certificate/0e720d01-ac51-459a-8442-d339eadcf8c6"  # ladurenko.com.ua (ISSUED)
+  # admin_certificate_arn = "arn:aws:acm:us-east-1:294396590372:certificate/96cd1553-1739-454a-9496-28b3f71d2fcf"  # admin.ladurenko.com.ua (ISSUED)
   # API Gateway Regional requires eu-central-1 certificate
-  # api_certificate_arn   = "arn:aws:acm:eu-central-1:294396590372:certificate/17d7217e-05f1-4cab-82d9-e73bc79a6df8"  # api.lostal.com.ua (ISSUED)
+  # api_certificate_arn   = "arn:aws:acm:eu-central-1:294396590372:certificate/17d7217e-05f1-4cab-82d9-e73bc79a6df8"  # api.ladurenko.com.ua (ISSUED)
 
   tags = {
     Environment = "production"
-    Owner       = "lostal-team"
+    Owner       = "ladurenko-team"
   }
 }
 

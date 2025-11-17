@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "project_name" {
   description = "Name of the project"
   type        = string
-  default     = "lostal"
+  default     = "ladurenko"
 }
 
 variable "environment" {
@@ -74,7 +74,7 @@ variable "api_certificate_arn" {
 variable "base_url" {
   description = "Base URL for the frontend application"
   type        = string
-  default     = "https://lostal.com.ua"
+  default     = "https://ladurenko.com.ua"
 }
 
 variable "google_analytics_id" {

@@ -1,14 +1,14 @@
-# Lostal Infrastructure
+# Ladurenko Infrastructure
 
-This directory contains the Terraform configuration for the Lostal legal office website infrastructure on AWS.
+This directory contains the Terraform configuration for the Ladurenko legal office website infrastructure on AWS.
 
 ## Architecture
 
 The infrastructure includes:
 
 - **S3 Buckets**: Two buckets for hosting static sites
-  - Main site bucket (lostal-{env}-site)
-  - Admin portal bucket (lostal-{env}-admin)
+  - Main site bucket (ladurenko-{env}-site)
+  - Admin portal bucket (ladurenko-{env}-admin)
 - **CloudFront Distributions**: CDN for both sites with optimized caching
 - **Lambda Function**: Admin API for content management
 - **API Gateway**: REST API endpoint for the Lambda function
@@ -95,7 +95,7 @@ This creates `lambda-package.zip` which is referenced in the Terraform configura
 Key variables you can customize:
 
 - `aws_region`: AWS region (default: us-east-1)
-- `project_name`: Project name (default: lostal)
+- `project_name`: Project name (default: ladurenko)
 - `environment`: Environment name (staging/prod)
 - `cloudfront_price_class`: CloudFront pricing tier
 - `domain_name`: Custom domain for main site (optional)
@@ -132,7 +132,7 @@ After deployment, Terraform outputs:
 
 2. Upload to S3:
    ```bash
-   aws s3 sync .output/public/ s3://lostal-{env}-site/ --delete
+   aws s3 sync .output/public/ s3://ladurenko-{env}-site/ --delete
    ```
 
 3. Invalidate CloudFront cache:
@@ -191,13 +191,13 @@ Consider adding:
 
 ```bash
 # Check Lambda logs
-aws logs tail /aws/lambda/lostal-{env}-admin-api --follow
+aws logs tail /aws/lambda/ladurenko-{env}-admin-api --follow
 
 # Test API Gateway
 curl https://{api-id}.execute-api.{region}.amazonaws.com/{env}/
 
 # Check S3 bucket contents
-aws s3 ls s3://lostal-{env}-site/
+aws s3 ls s3://ladurenko-{env}-site/
 ```
 
 ## Next Steps

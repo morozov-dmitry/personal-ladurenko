@@ -67,7 +67,7 @@ jobs:
 
         # Get Terraform outputs
         cd infrastructure/environments/$ENV
-        terraform init -backend-config="bucket=lostal-terraform-state" -backend-config="key=$ENV/terraform.tfstate" -backend-config="region=eu-central-1"
+        terraform init -backend-config="bucket=ladurenko-terraform-state" -backend-config="key=$ENV/terraform.tfstate" -backend-config="region=eu-central-1"
 
         # Extract API Gateway URL
         API_BASE_URL=$(terraform output -raw api_gateway_url 2>/dev/null || echo "")
@@ -137,23 +137,23 @@ jobs:
 
     - name: Deploy to S3
       run: |
-        aws s3 sync ./build/ s3://lostal-staging-admin/ --delete
+        aws s3 sync ./build/ s3://ladurenko-staging-admin/ --delete
         echo "Admin frontend deployed to staging S3 bucket"
 
     - name: Invalidate CloudFront
       run: |
-        DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?contains(Origins.Items[0].DomainName, 'lostal-staging-admin')].Id" --output text)
+        DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?contains(Origins.Items[0].DomainName, 'ladurenko-staging-admin')].Id" --output text)
         aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"
         echo "CloudFront cache invalidated for staging admin"
 
     - name: Output Staging Admin Frontend URL
       run: |
-        DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?contains(Origins.Items[0].DomainName, 'lostal-staging-admin')].Id" --output text)
+        DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?contains(Origins.Items[0].DomainName, 'ladurenko-staging-admin')].Id" --output text)
         DOMAIN=$(aws cloudfront get-distribution --id $DISTRIBUTION_ID --query "Distribution.DomainName" --output text)
         
         # Get API Gateway URL from Terraform
         cd infrastructure/environments/staging
-        terraform init -backend-config="bucket=lostal-terraform-state" -backend-config="key=staging/terraform.tfstate" -backend-config="region=eu-central-1"
+        terraform init -backend-config="bucket=ladurenko-terraform-state" -backend-config="key=staging/terraform.tfstate" -backend-config="region=eu-central-1"
         API_URL=$(terraform output -raw api_gateway_url 2>/dev/null || echo "")
         if [ -z "$API_URL" ]; then
           echo "WARNING: API Gateway URL is empty! Terraform output failed."
@@ -191,23 +191,23 @@ jobs:
 
     - name: Deploy to S3
       run: |
-        aws s3 sync ./build/ s3://lostal-prod-admin/ --delete
+        aws s3 sync ./build/ s3://ladurenko-prod-admin/ --delete
         echo "Admin frontend deployed to production S3 bucket"
 
     - name: Invalidate CloudFront
       run: |
-        DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?contains(Origins.Items[0].DomainName, 'lostal-prod-admin')].Id" --output text)
+        DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?contains(Origins.Items[0].DomainName, 'ladurenko-prod-admin')].Id" --output text)
         aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"
         echo "CloudFront cache invalidated for production admin"
 
     - name: Output Prod Admin Frontend URL
       run: |
-        DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?contains(Origins.Items[0].DomainName, 'lostal-prod-admin')].Id" --output text)
+        DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?contains(Origins.Items[0].DomainName, 'ladurenko-prod-admin')].Id" --output text)
         DOMAIN=$(aws cloudfront get-distribution --id $DISTRIBUTION_ID --query "Distribution.DomainName" --output text)
         
         # Get API Gateway URL from Terraform
         cd infrastructure/environments/prod
-        terraform init -backend-config="bucket=lostal-terraform-state" -backend-config="key=prod/terraform.tfstate" -backend-config="region=eu-central-1"
+        terraform init -backend-config="bucket=ladurenko-terraform-state" -backend-config="key=prod/terraform.tfstate" -backend-config="region=eu-central-1"
         API_URL=$(terraform output -raw api_gateway_url 2>/dev/null || echo "")
         if [ -z "$API_URL" ]; then
           echo "WARNING: API Gateway URL is empty! Terraform output failed."

@@ -53,7 +53,7 @@ jobs:
       working-directory: ./infrastructure/terraform-state
 
     - name: Terraform Init Staging
-      run: terraform init -backend-config="bucket=lostal-terraform-state" -backend-config="key=staging/terraform.tfstate" -backend-config="region=eu-central-1"
+      run: terraform init -backend-config="bucket=ladurenko-terraform-state" -backend-config="key=staging/terraform.tfstate" -backend-config="region=eu-central-1"
       working-directory: ./infrastructure/environments/staging
 
     - name: Terraform Plan Staging
@@ -61,7 +61,7 @@ jobs:
       working-directory: ./infrastructure/environments/staging
 
     - name: Terraform Init Prod
-      run: terraform init -backend-config="bucket=lostal-terraform-state" -backend-config="key=prod/terraform.tfstate" -backend-config="region=eu-central-1"
+      run: terraform init -backend-config="bucket=ladurenko-terraform-state" -backend-config="key=prod/terraform.tfstate" -backend-config="region=eu-central-1"
       working-directory: ./infrastructure/environments/prod
 
     - name: Terraform Plan Prod
@@ -138,7 +138,7 @@ jobs:
       continue-on-error: true
 
     - name: Terraform Init Staging
-      run: terraform init -backend-config="bucket=lostal-terraform-state" -backend-config="key=staging/terraform.tfstate" -backend-config="region=eu-central-1"
+      run: terraform init -backend-config="bucket=ladurenko-terraform-state" -backend-config="key=staging/terraform.tfstate" -backend-config="region=eu-central-1"
       working-directory: ./infrastructure/environments/staging
 
     - name: Terraform Apply Staging
@@ -192,7 +192,7 @@ jobs:
       continue-on-error: true
 
     - name: Terraform Init Prod
-      run: terraform init -backend-config="bucket=lostal-terraform-state" -backend-config="key=prod/terraform.tfstate" -backend-config="region=eu-central-1"
+      run: terraform init -backend-config="bucket=ladurenko-terraform-state" -backend-config="key=prod/terraform.tfstate" -backend-config="region=eu-central-1"
       working-directory: ./infrastructure/environments/prod
 
     - name: Terraform Apply Prod

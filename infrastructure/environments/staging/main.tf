@@ -1,7 +1,7 @@
 # Staging environment
 terraform {
   backend "s3" {
-    bucket = "lostal-terraform-state"
+    bucket = "ladurenko-terraform-state"
     key    = "staging/terraform.tfstate"
     region = "eu-central-1"
   }
@@ -11,27 +11,27 @@ module "infrastructure" {
   source = "../../"
 
   environment            = "staging"
-  project_name           = "lostal"
+  project_name           = "ladurenko"
   aws_region             = "eu-central-1"
   cloudfront_price_class = "PriceClass_100"
-  base_url              = "https://staging.lostal.com.ua"
+  base_url              = "https://staging.ladurenko.com.ua"
   google_analytics_id   = ""
   google_ads_id         = ""
   google_ads_conversion_id = ""
   
   # Custom domains (optional - set these if you have SSL certificates)
-  # domain_name           = "staging.lostal.com.ua"
-  # admin_domain_name     = "staging-admin.lostal.com.ua"
-  # api_domain_name       = "staging-api.lostal.com.ua"
+  # domain_name           = "staging.ladurenko.com.ua"
+  # admin_domain_name     = "staging-admin.ladurenko.com.ua"
+  # api_domain_name       = "staging-api.ladurenko.com.ua"
   
   # SSL certificate ARNs (optional - set these if you have certificates)
-  # certificate_arn       = ""  # Set to your SSL certificate ARN for staging.lostal.com.ua
-  # admin_certificate_arn = "" # Set to your SSL certificate ARN for staging-admin.lostal.com.ua
-  # api_certificate_arn   = "" # Set to your SSL certificate ARN for staging-api.lostal.com.ua
+  # certificate_arn       = ""  # Set to your SSL certificate ARN for staging.ladurenko.com.ua
+  # admin_certificate_arn = "" # Set to your SSL certificate ARN for staging-admin.ladurenko.com.ua
+  # api_certificate_arn   = "" # Set to your SSL certificate ARN for staging-api.ladurenko.com.ua
 
   tags = {
     Environment = "staging"
-    Owner       = "lostal-team"
+    Owner       = "ladurenko-team"
   }
 }
 
