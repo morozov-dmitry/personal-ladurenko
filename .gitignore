@@ -115,6 +115,8 @@ admin-front/.vite/
 # Package manager lock files - tracking pnpm-lock.yaml, ignoring npm/yarn lockfiles
 package-lock.json
 yarn.lock
+# Exception: admin-api uses npm and needs package-lock.json for CI/CD
+!admin-api/package-lock.json
 
 # TypeScript build info
 *.tsbuildinfo
